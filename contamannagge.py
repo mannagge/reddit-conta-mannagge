@@ -5,11 +5,16 @@
 import os
 import re
 import random
+import logging
 import sqlite3
 import argparse
 
 import praw
 import prawcore
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 VERSION = '1.0'
 
@@ -129,7 +134,7 @@ def listen(args):
                          client_secret=args.client_secret,
                          user_agent=args.user_agent)
     try:
-        print('I: start listening for mannagge on %s' % args.subs)
+        logger.info('start listening for mannagge on %s' % args.subs)
         for comment in reddit.subreddit(args.subs).stream.comments(skip_existing=True):
             try:
                 if comment.edited:
@@ -145,20 +150,20 @@ def listen(args):
                     continue
                 if not mannagge:
                     continue
-                print('I: at %s user %s mannagged in a post (id: %s, link_id: %s, permalink: %s): %s' % (created_utc,
-                        author, comment_id, link_id, permalink, ' | '.join(mannagge)))
+                logger.info('at %s user %s mannagged in a post (id: %s, link_id: %s, permalink: %s): %s' % (created_utc,
+                        author.name, comment_id, link_id, permalink, ' | '.join(mannagge)))
                 storeMannagge(created_utc, author, comment_id,
                               link_id, permalink, mannagge)
                 replyMsg = buildReply(args, author.name, mannagge)
                 try:
                     comment.reply(body=replyMsg)
-                    print('I: replied to %s' % author.name)
+                    logger.info('replied to %s' % author.name)
                 except prawcore.exceptions.Forbidden as e:
-                    print('W: exception caught posting a reply: %s', e)
+                    logger.warn('exception caught posting a reply: %s', e)
             except praw.exceptions.APIException as e:
-                print('W: exception caught (may be a rate limit): %s' % e)
+                logger.warn('exception caught (may be a rate limit): %s' % e)
     except KeyboardInterrupt:
-        print('I: stop listening')
+        logger.info('stop listening')
 
 
 if __name__ == '__main__':
