@@ -155,11 +155,13 @@ def listen(args):
                 storeMannagge(created_utc, author, comment_id,
                               link_id, permalink, mannagge)
                 replyMsg = buildReply(args, author.name, mannagge)
-                try:
-                    comment.reply(body=replyMsg)
-                    logger.info('replied to %s' % author.name)
-                except prawcore.exceptions.Forbidden as e:
-                    logger.warn('exception caught posting a reply: %s', e)
+                logger.info('replied to %s with this message:%s%s' % (author.name, os.linesep, replyMsg))
+                if args.reply:
+                    try:
+                        comment.reply(body=replyMsg)
+                        logger.info('replied to %s' % author.name)
+                    except prawcore.exceptions.Forbidden as e:
+                        logger.warn('exception caught posting a reply: %s', e)
             except praw.exceptions.APIException as e:
                 logger.warn('exception caught (may be a rate limit): %s' % e)
     except KeyboardInterrupt:
@@ -186,6 +188,8 @@ if __name__ == '__main__':
                         help='subs to listen to (join them with a +, if more than one)')
     parser.add_argument('--db-path', default=os.environ.get('CONTAMANNAGGE_DB_PATH'),
                         help='directory where the mannagge database will be stored')
+    parser.add_argument('--reply', default=False, action='store_true',
+                        help='if set, the user will receive a reply')
     parser.add_argument('--version', action='version', version=VERSION)
     args = parser.parse_args()
     if args.db_path:
