@@ -1,0 +1,21 @@
+#!/bin/bash
+
+YEAR=2024
+
+from="$(date -u -d "${YEAR}-01-01 00:00:00" +'%s')"
+to="$(date -u -d "$((${YEAR} + 1))-01-01 00:00:00" +'%s')"
+
+echo -e "TOTAL MANNAGGE:"
+sqlite3 data/mannagge.db "SELECT COUNT(*) FROM mannagge WHERE created_utc >= ${from} AND created_utc < ${to}"
+
+echo -e "\nMOST MANNAGGED MANNAGGE:"
+sqlite3 data/mannagge.db "SELECT COUNT(*), mannaggia FROM mannagge WHERE created_utc >= ${from} AND created_utc < ${to} COLLATE NOCASE GROUP BY mannaggia COLLATE NOCASE ORDER BY COUNT(*) COLLATE NOCASE DESC LIMIT 20"
+
+echo -e "\nMOST MANNAGING AUTHORS:"
+sqlite3 data/mannagge.db "SELECT COUNT(*), CONCAT('r/', author_name) FROM mannagge WHERE created_utc >= ${from} AND created_utc < ${to} COLLATE NOCASE GROUP BY author_name COLLATE NOCASE ORDER BY COUNT(*) COLLATE NOCASE DESC LIMIT 20"
+
+echo -e "\nMOST MANNAGGED DAYS:"
+sqlite3 data/mannagge.db "SELECT COUNT(*), date(created_utc, 'unixepoch', 'utc') FROM mannagge WHERE created_utc >= ${from} AND created_utc < ${to} GROUP BY date(created_utc, 'unixepoch', 'utc') ORDER BY COUNT(*) DESC LIMIT 20"
+
+echo -e "\nMOST MANNAGGED MONTHS:"
+sqlite3 data/mannagge.db "SELECT COUNT(*), strftime('%Y-%m', date(created_utc, 'unixepoch', 'utc')) FROM mannagge WHERE created_utc >= ${from} AND created_utc < ${to} GROUP BY strftime('%Y-%m', date(created_utc, 'unixepoch', 'utc')) ORDER BY COUNT(*) DESC LIMIT 20"
